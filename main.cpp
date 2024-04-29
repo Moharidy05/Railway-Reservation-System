@@ -1,214 +1,248 @@
-#include <iostream>
-#include <iomanip>
-#include <string>
-#include <ctime>
-#include <chrono>
-#include <fstream>
+#include<iostream>
+#include<string>
+#include<vector>
+#include<fstream>
 
 using namespace std;
-//using namespace std::chrono;
 
-//---------------------- Structs ----------------------//
-struct Train
-{								// to write the information of train
-	int ID;
-	string name;
-	int number;
-	bool availability;
-	string time;
-}train[10];
+bool isloggedin()
+{
+    string username;
+    string password;
+    string un; //comparison string
+    string pw; //comparison string
+    cout << "Please Enter The USERNAME : ";
+    cin >> username;
+    cout << "Please Enter The PASSWORD : ";
+    cin >> password;
 
-struct User
-{								// to write the information of user
-	int ID;
-	string Name;
-	string Phone;
-	int Age;
-	string Email;
-	string Address;
-	char Role;
-	char gender;
+    fstream read; // fstream reads a file
+    read.open("Data.txt", ios::in);
+    
+
+    if (!read.is_open()) {
+      cout << "Error opening the file";
+      read.close();
+      exit(1);
+    }
+    // Check every username and Password in the file 
+    while (!read.eof()){
+        getline(read, un); //reads the username
+        getline(read, pw); //reads the password 
+        if (un == username && pw == password) //if both un & username and pw & password are the same -> true
+        {
+            read.close();
+            return true;
+        }
+    }
+    // if the Function didn't return this means that the given username is not in file or the password is wrong
+    return false ;
+}
+
+
+struct Train { // to write the information of train
+    string ID;
+    string name;
+    string number;
+    bool availability;
 };
 
-struct Ticket
-{								// to write the information of ticket
-	int ID;
-	string Start_location;
-	string Destination_location;
-	double Price;
+struct User {  // to write the information of user
+    int ID;
+    string Name;
+    string Phone;
+    int Age;
+    string Email;
+    string Address;
+    string Role;
+    string gender;
 };
 
-struct Card		// Payment card info
-{
-	long long card_number;
-	int cvv;
-	int exp_month;
-	int exp_year;
+struct Ticket {   // to write the information of ticket
+    string name ;
+    string Start_location ;
+    string Destination_location ;
+    double Price ;
 };
 
-//---------------------- Global Variables ----------------------//
-int current_month = 5;
-int current_year = 24;
-//time_t my_time = time(nullptr);
-//cout << ctime(&my_time);
+vector<Ticket> Tickets ;
 
+void MangeTicket() {
+    while (1){
+        // Menu
+        cout << endl << "Enter 1 to add new ticket" << endl ;
+        cout << "Enter 2 to change ticket" << endl ;
+        cout << "Enter 3 to delete ticket" << endl ;
+        cout << "Enter any other number to exit" << endl ;
+        int choice ;
+        cin >> choice ;
+        cin.ignore();
+        if (choice == 1){
+            Ticket NewTicket ;
+            bool exist = false ;
 
-//---------------------- Functions ----------------------//
+            // Taking the Name of the ticket
+            string name;
+            cout << endl << "Enter the name of the ticket : " ;
+            do{
+                getline(cin, name);
+                // Check if this name Already Exists or it's unique
+                for (int i = 0 ; i < Tickets.size() ; i++){ // loop in all tickets i have and if exists -> true
+                    if (Tickets[i].name == name){
+                        exist = true ;
+                        cout << "This name is already exists. Please enter a new one : ";
+                        break;
+                    }
+                }
+            } while (exist);
+            NewTicket.name = name ;
 
-// Gets the number of digits from an int or long long //
-int get_digits(long long n)
-{
-	int length = 0;
-	do
-	{
-		n /= 10;
-		length++;
-	} while (n != 0);
+            // Get start location
+            cout << "Enter the start location of the ticket : " ;
+            string Start_location ; 
+            getline(cin , Start_location) ;
+            NewTicket.Start_location = Start_location ;
 
-	return length;
-}
+            // Get destination location
+            cout << "Enter the destination location of the ticket : " ;
+            string Destination_location ; 
+            getline(cin , Destination_location) ;
+            NewTicket.Destination_location = Destination_location ;
 
+            // Get Price
+            cout << "Enter the price of the ticket : " ;
+            double price ; 
+            cin >> price ;
+            NewTicket.Price = price ;
 
-bool make_payment()
-{
-	Card visa;
-	int cvv_digits;
+            // Push the NewTicket in my Tickets
+            Tickets.push_back(NewTicket) ;
+            cout << endl << endl << "Ticket added successfully!" << endl << endl << endl ;
+        }
+        else if (choice == 2){
+            // if there is no tickets , then i will not be able to change anything
+            if (Tickets.size() == 0){
+                cout << endl << endl << "There is no tickets to change" << endl << endl << endl ;
+                continue;
+            }
 
-	cout << "Payment card details:" << endl;	// entering payment card details //
-	while (true)
-	{
-		cout << "Card number: ";
-		cin >> visa.card_number;
+            // Take the Name of The ticket
+            cout << endl << "Enter the name of the ticket you want to change : " ;
+            string name ; 
+            getline(cin , name) ;
+            
+            // Check if this name Already Exists and get the index of it
+            int index = -1 ; // make index -1 as no index will be -1 so if the index != -1
+                            // this means this name is already exits and it's index = i
+            while (index == -1){
+                // Check
+                for (int i = 0 ; i < Tickets.size() ; i ++){ 
+                    if (Tickets[i].name == name){
+                        index = i ;
+                    }
+                }
+                if (index == -1) { // reinput to be checked again
+                    cout << "This name is not exist. Enter a correct one : " ;
+                    getline(cin , name) ;
+                }
+            }
+            cout << endl << "Enter the new name of the ticket : " ;
+            
+            getline(cin , name) ;
+            Tickets[index].name = name ;
+            
+            // Get the new start location
+            cout << "Enter the new start location of the ticket : " ;
+            string Start_location ; 
+            getline(cin , Start_location) ;
+            // Changing the old value to the new value
+            Tickets[index].Start_location = Start_location ;
 
-		if (get_digits(visa.card_number) != 16)		// checking if card number = 16 digits or not //
-		{
-			cout << "card number invalid!" << endl;
-		}
-		else
-		{
-			break;
-		}
-	}
+            // Get the new destination location
+            cout << "Enter the new destination location of the ticket : " ;
+            string Destination_location ; 
+            getline(cin , Destination_location) ;
+            // Changing the old value to the new value
+            Tickets[index].Destination_location = Destination_location ;
 
-	while (true)
-	{
-		cout << "CVV: ";
-		cin >> visa.cvv;
-		cvv_digits = get_digits(visa.cvv);
+            // Get the new price
+            cout << "Enter the new price of the ticket : " ;
+            double price ; cin >> price ;
+            // Changing the old value to the new value
+            Tickets[index].Price = price ;
 
-		if (cvv_digits == 3 || cvv_digits == 4)		// checking if CVV is 3 or 4 digits //
-		{
-			break;
-		}
-		else
-		{
-			cout << "CVV invalid" << endl;
-		}
-	}
-
-	while (true)
-	{
-		cout << "Expiration date:" << endl << "month: ";
-		cin >> visa.exp_month;
-		cout << "year: ";
-		cin >> visa.exp_year;
-
-		if (visa.exp_year > current_year)	 // checking card's exp date //
-			break;
-		else if (visa.exp_year == current_year)
-		{
-			if (visa.exp_month > current_month)
-				break;
-			else
-				cout << "Card has already expired" << endl;
-		}
-		else
-			cout << "Card has already expired" << endl;
-	}
-	return true;
-}
-
-int manage_payment(int start, int dest, int seats)
-{
-
-}
-
-void book_tickets()
-{
-	Ticket ticket;
-	int key = 0, seats = 0;
-
-	cout << left;
-	cout << setw(15);
-	cout << "Locaitons" << endl;
-	cout << "-----------------------";
-	cout << "1>> Cario" << endl;
-	cout << "2>> Alex" << endl;
-	cout << "3>> Assiut" << endl;
-	cout << "4>> Aswan" << endl;
-	cout << "5>> Luxor" << endl;
-	cout << "----------------------------------------------" << endl;
-
-	cout << "Press a number for start location:" << endl;		// Taking start location from user
-	cout << "-->";
-	cin >> key;
-	switch (key)
-	{
-	case 1:
-		ticket.Start_location = "Cario";
-		break;
-	case 2:
-		ticket.Start_location = "Alex";
-		break;
-	case 3:
-		ticket.Start_location = "Assiut";
-		break;
-	case 4:
-		ticket.Start_location = "Aswan";
-		break;
-	case 5:
-		ticket.Start_location = "Luxor";
-	}
-
-	cout << "Press a number for destination location:" << endl;		// Taking destination location from user
-	cout << "-->";
-	cin >> key;
-	switch (key)
-	{
-	case 1:
-		ticket.Destination_location = "Cario";
-		break;
-	case 2:
-		ticket.Destination_location = "Alex";
-		break;
-	case 3:
-		ticket.Destination_location = "Assiut";
-		break;
-	case 4:
-		ticket.Destination_location = "Aswan";
-		break;
-	case 5:
-		ticket.Destination_location = "Luxor";
-	}
-
-	cout << "Enter number of seats:" << endl;
-	cout << "-->";
-	cin >> seats;
-
-	ticket.Price = manage_payment(ticket.Start_location, ticket.Destination_location, seats);
-
-}
-
-void display_train()
-{
-
+            cout << endl << endl << "Ticket changed successfully!" << endl << endl << endl ;
+        }
+        else if (choice == 3){
+            // if there is no tickets , then i will not be able to delete anything
+            if (Tickets.size() == 0){
+                cout << endl << endl << "There is no tickets to delete" << endl << endl << endl ;
+                continue;
+            }
+            // Take the Name of The ticket
+            cout << endl << "Enter the name of the ticket : " ;
+            string name ; 
+            getline(cin , name) ;
+            // Check if this name Already Exists and get the index of it
+            int index = -1 ; // make index -1 as no index will be -1 so if the index != -1
+                            // this means this name is already exits and it's index = i
+            while (index == -1){
+                // Check
+                for (int i = 0 ; i < Tickets.size() ; i ++){
+                    if (Tickets[i].name == name){
+                        index = i ;
+                    }
+                }
+                if (index == -1) { // reinput to be checked again
+                    cout << "This name is not exist. Enter a correct one : " ;
+                    getline(cin , name) ;
+                }
+            }
+            // erasing the ticket with this index
+            Tickets.erase(Tickets.begin() + index) ;
+            cout << endl << endl << "Ticket deleted successfully!" << endl << endl << endl ;
+        }
+        else {
+            // if the choice any other value -> end the program
+            break ;
+        }
+    }
 }
 
 
 int main()
 {
-	//---------------------- Trains ---------------------- //
-	train[0] = { 0, "Cairo Mirage", 101, true };
+    int choice;
+    cout << "\t\t\t _____________________________________________________________________________________________\n\n\n";
+    cout << "\t\t\t                                 Welcome to Log in page                                        \n\n\n";
+    cout << "\t\t\t ___________________________              MENU              ____________________________________\n\n\n";
 
+    
 
+    while (1){
+        cout << endl << "Press 1 to log in." << endl ;
+        cout << "Press 2 to MangeTicket." << endl ;
+        cout << "Press 0 to end the program." << endl ;
+        int choice ;
+        cin >> choice ;
+        if (choice == 1){
+            int check = isloggedin() ;
+            int counter = 0;
+            while(!check && counter < 4){
+                cout << endl << "Wrong password or username." << endl ; 
+                cout << "Please enter a correct username and password." << endl << endl;
+                check = isloggedin() ;
+            }
+            if (check)
+                cout << endl << "Logged in successfully :D" << endl << endl ;
+            else
+                cout << "Error entering credentials worng too many times!";
+        }
+        else if (choice == 2) {
+            MangeTicket() ;
+        }
+        else {
+            break ;
+        }
+    }
 }
