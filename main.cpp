@@ -1065,7 +1065,7 @@ int main()
         cout << "\t\t\tIf you already have an account, press 1\n";
         cout << "\t\t\tTo exit the program, press any key\n\n";
         cout << "\t\t\t\t";
-
+        
         char button;
         button = getch();
 
