@@ -1,0 +1,6 @@
+1		Cairo		Alex		10
+5		Cairo		Benha		45
+9		Aswan		Cairo		99
+12		Alex		Assiut		19
+88		Alex		Bahtim		7
+18		Aswan		Kanater		12
