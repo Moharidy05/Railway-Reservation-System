@@ -10,25 +10,29 @@
 using namespace std;
 
 
-
 //---------------------- Global Variables ----------------------//
 int current_month = 5;
 int current_year = 24;
-const int ROWS = 5;
-const int COLS = 5;
-int tickets[ROWS][COLS] = {{0}};
 fstream prices;     // "ticketsPrices.txt" stores tickets prices
 
 //---------------------- Structs ----------------------//
 struct Train { // to write the information of train
     string ID;
     string name;
-    string number;
+    int number;
     bool availability;
 }train;
 
-struct User {  // to write the information of user
+struct Ticket {   // to write the information of ticket
     int ID;
+    string Start_location;
+    string Destination_location;
+    int Price;
+};
+vector<Ticket> Tickets;
+
+struct User {  // to write the information of user
+    string ID;
     string Name;
     string Phone;
     int Age;
@@ -36,22 +40,18 @@ struct User {  // to write the information of user
     string Address;
     string Role;        // Passenger or Admin
     string gender;
+    vector<Ticket>booked_tickets; // to store all the booked ticketsfor the user and store it in the user report.
 }user;
+vector<User> user_reports; // to store all data about the user including tickets booked and all action he does in the program.
 
-struct Ticket {   // to write the information of ticket
-    int ID;
-    string Start_location ;
-    string Destination_location ;
-    double Price ;
-};
-vector<Ticket> Tickets;
+
 
 struct Card		// Payment card info
 {
-	long long card_number;
-	int cvv;
-	int exp_month;
-	int exp_year;
+    long long card_number;
+    int cvv;
+    int exp_month;
+    int exp_year;
     bool is_available;
 }visa;
 
@@ -71,81 +71,81 @@ struct Cash
 
 int get_digits(long long n)     // Gets number of digits from an integer or long long
 {
-	int length = 0;
-	do
-	{
-		n /= 10;
-		length++;
-	} while (n != 0);
+    int length = 0;
+    do
+    {
+        n /= 10;
+        length++;
+    } while (n != 0);
 
-	return length;
+    return length;
 }
 
 bool is_valid()     // Checks if user's visa valid or not
 {
     // Creating payment method for the user to pay 
-	int cvv_digits;
-	fstream tktprices;
+    int cvv_digits;
+    fstream tktprices;
 
-	cout << "Payment card details:" << endl;	// entering payment card details //
-	while (true)
-	{
-		cout << "Card number: ";
-		cin >> visa.card_number;
+    cout << "Payment card details:" << endl;	// entering payment card details //
+    while (true)
+    {
+        cout << "Card number: ";
+        cin >> visa.card_number;
 
-		if (get_digits(visa.card_number) != 16)		// checking if card number = 16 digits or not //
-		{
-			cout << "card number invalid!" << endl;
-		}
-		else
-		{
+        if (get_digits(visa.card_number) != 16)		// checking if card number = 16 digits or not //
+        {
+            cout << "card number invalid!" << endl;
+        }
+        else
+        {
             cout << "\n";
-			break;
-		}
-	}
+            break;
+        }
+    }
 
-	while (true)
-	{
-		cout << "CVV: ";
-		cin >> visa.cvv;
-		cvv_digits = get_digits(visa.cvv);
+    while (true)
+    {
+        cout << "CVV: ";
+        cin >> visa.cvv;
+        cvv_digits = get_digits(visa.cvv);
 
-		if (cvv_digits == 3 || cvv_digits == 4)		// checking if CVV is 3 or 4 digits //
-		{
+        if (cvv_digits == 3 || cvv_digits == 4)		// checking if CVV is 3 or 4 digits //
+        {
             cout << "\n";
-			break;
-		}
-		else
-		{
-			cout << "CVV invalid" << endl;
-		}
-	}
+            break;
+        }
+        else
+        {
+            cout << "CVV invalid" << endl;
+        }
+    }
 
-	while (true)
-	{
-		cout << "Expiration date:" << endl << "month: ";
-		cin >> visa.exp_month;
-		cout << "year: ";
-		cin >> visa.exp_year;
+    while (true)
+    {
+        cout << "Expiration date:" << endl << "month: ";
+        cin >> visa.exp_month;
+        cout << "year: ";
+        cin >> visa.exp_year;
 
-		if (visa.exp_year > current_year)	 // checking card's exp date //
+        if (visa.exp_year > current_year)	 // checking card's exp date //
         {
             cout << "---------------------------------------------\n";
-			break;
+            break;
         }
-		else if (visa.exp_year == current_year)
-		{
-			if (visa.exp_month > current_month)
+        else if (visa.exp_year == current_year)
+        {
+            if (visa.exp_month > current_month)
             {
                 cout << "---------------------------------------------\n";
-				break;
+                break;
             }
-			else
-				cout << "Card has already expired" << endl;
-		}
-		else
-			cout << "Card has already expired" << endl;
-	}
+            else
+                cout << "Card has already expired" << endl;
+        }
+        else
+            cout << "Card has already expired" << endl;
+    }
     return true;
 }
 
@@ -158,12 +158,14 @@ void manage_train_schedule() {
     while (true)
     {
         system("cls");  // Clears terminal's screen
-        ofstream add;
-        ifstream display;
+
+        // Reading variables
+        ofstream add;   // fstream for adding treians
+        ifstream display;   // fstream for displaying trains
 
         cout << "__________________________________     Train Schedule     __________________________________\n\n";
-        cout << "\t\t[1] Add train"<<endl;
-        cout << "\t\t[2] View schdule of existing trains"<<endl;
+        cout << "\t\t[1] Add train" << endl;
+        cout << "\t\t[2] View schedule of existing trains" << endl;
         cout << "\t\t[3] Modify train" << endl;
         cout << "\t\t[4] Delete train" << endl;
         cout << "\t\t[5] Back to dashboard\n\n";
@@ -171,7 +173,7 @@ void manage_train_schedule() {
         cout << "\t\t\t";
 
         char choice;
-        choice = getch();
+        choice = _getch();
 
         if (choice == '1')
         {   // Add train
@@ -185,7 +187,7 @@ void manage_train_schedule() {
             cout << "\t\tEnter train name: ";
             cin.ignore();
             getline(cin, train.name);
-        
+
             cout << "\t\tEnter train availability: ";
             cin >> train.availability;
 
@@ -193,25 +195,27 @@ void manage_train_schedule() {
             add.open("train_schedule.txt", ios::app);
             if (add.is_open())
             {
-                add << endl << "train number: " << train.number;
                 add << endl << "train ID: " << train.ID;
+                add << endl << "train number: " << train.number;
                 add << endl << "train name: " << train.name;
                 add << endl << "train availability: " << train.availability;
                 add << endl << "______________________________";
                 add.close();
-                cout <<"\t\t"<< "Train added successfully"<<endl;
+                cout << "\t\t" << "Train added successfully" << endl;
             }
             else
             {
                 cout << "\t\tError reading from file!\n\n";
-                cout << "\t\tPress any key to continue\n";
-                cout << "\t\t\t";
-                getch();
             }
+            add.close();
+            cout << "\t\tPress any key to continue\n";
+            cout << "\t\t\t";
+            _getch();
         }
         else if (choice == '2')
         {   // View train schedule
             system("cls");
+
             string line;
             display.open("train_schedule.txt", ios::in);
 
@@ -220,19 +224,191 @@ void manage_train_schedule() {
                 while (getline(display, line)) {
                     cout << "\t\t" << line << endl;
                 }
-
-            display.close();
             }
+            else
+            {
+                cout << "\t\tError reading trians data\n";
+            }
+            display.close();
             cout << "\t\tPress any key to continue\n";
             cout << "\t\t\t";
-            getch();
+            _getch();
         }
         else if (choice == '3')
         {   // Modify train
+            system("cls");
 
+            cout << "\t\tEnter train ID to modify:\n";
+            cout << "\t\t\t";
+            cin >> train.ID;
+            cin.ignore();
+
+            // Reading variables
+            ofstream temp;  // To add the new data
+            string line;
+            bool exist = false;
+
+            display.open("train_schedule.txt");
+
+            // Checks the train exists or not
+            if (display.is_open())
+            {
+                while (getline(display, line))
+                {
+                    if (line == "train ID: " + train.ID)
+                    {
+                        exist = true;
+                        break;
+                    }
+                }
+                if (!exist)
+                {
+                    display.close();
+                    cout << "\t\tTrain does not exist!\n";
+                    cout << "\t\tPress any key to continue\n";
+                    cout << "\t\t\t";
+                    _getch();
+                    continue;
+                }
+                display.close();
+            }
+            else
+            {
+                cout << "\t\tError reading trains data from file!\n";
+                cout << "\t\tPress any key to continue\n";
+                cout << "\t\t\t";
+                _getch();
+            }
+
+            // Getting new train's data
+            cout << "\t\tEnter new Train name: ";
+            getline(cin, train.name);
+
+            cout << "\t\tEnter new Train number: ";
+            cin >> train.number;
+
+            cout << "\t\tEnter Trian's availability: ";
+            cin >> train.availability;
+            cin.ignore();
+
+
+            // Opening display file to copy from and paste in temp file
+            display.open("train_schedule.txt");
+            temp.open("new_train_schedule.txt");
+
+            if (display.is_open() && temp.is_open())
+            {
+                while (getline(display, line))
+                {
+                    if (line == "train ID: " + train.ID)
+                    {   // Skipping the existing train's details to replace them with the modified ones
+                        for (int i = 0; i < 4; i++)
+                        {
+                            getline(display, line);
+                        }
+                        // Writing the data of the modified train
+                        temp << "train ID: " << train.ID;
+                        temp << endl << "train number: " << train.number;
+                        temp << endl << "train name: " << train.name;
+                        temp << endl << "train availability: " << train.availability;
+                        temp << endl << "______________________________";
+                    }
+                    else
+                    {
+                        temp << line << endl;
+                    }
+                }
+                display.close();
+                temp.close();
+
+                remove("train_schedule.txt");
+                rename("new_train_schedule.txt", "train_schedule.txt");
+            }
+            else
+            {
+                cout << "\t\tError reading trains data from file!\n";
+                cout << "\t\tPress any key to continue\n";
+                cout << "\t\t\t";
+                _getch();
+            }
         }
         else if (choice == '4')
         {   // Delete train
+            system("cls");
+
+            cout << "\t\tEnter train ID to delete:\n";
+            cout << "\t\t\t";
+            cin >> train.ID;
+            cin.ignore();
+
+            // Reading variables
+            ofstream temp;  // To add the new data
+            string line;
+            bool exist = false;
+
+            display.open("train_schedule.txt");
+
+            if (display.is_open())
+            {
+                // Checks the train exists or not
+                while (getline(display, line))
+                {
+                    if (line == "train ID: " + train.ID)
+                    {
+                        exist = true;
+                    }
+                }
+
+                if (!exist)
+                {
+                    display.close();
+                    cout << "\t\tTrain does not exist!\n";
+                    cout << "\t\tPress any key to continue\n";
+                    cout << "\t\t\t";
+                    _getch();
+                    continue;
+                }
+                else    // The train exists, so it will be deleted
+                {
+                    // Resetting the stream pointer to start reading from the beggining of the file
+                    display.clear();
+                    display.seekg(0, ios::beg);
+
+                    temp.open("new_train_schedule.txt");
+
+                    // Reading trains' data
+                    while (getline(display, line))
+                    {
+                        if (line == "train ID: " + train.ID)
+                        {
+                            // Skipping the existing train's data (to delete it)
+                            for (int i = 0; i < 4; i++)
+                            {
+                                getline(display, line);
+                            }
+                        }
+                        else
+                        {
+                            // Write the data of the rest trains
+                            temp << line << endl;
+                        }
+                    }
+                    display.close();
+                    temp.close();
+
+                    remove("train_schedule.txt");
+                    rename("new_train_schedule.txt", "train_schedule.txt");
+                }
+                display.close();
+            }
+            else
+            {
+                cout << "\t\tError reading trains data from file!\n";
+                cout << "\t\tPress any key to continue\n";
+                cout << "\t\t\t";
+                _getch();
+            }
+
 
         }
         else if (choice == '5')
@@ -244,7 +420,219 @@ void manage_train_schedule() {
 
 void manage_user_accounts()
 {
+    while (true)
+    {
+        system("cls");
 
+        // Reading variables
+        fstream users_data; // For reading data
+        ofstream temp;      // For writing new data
+        string id, role, password, line;
+        bool exist = false;
+
+        cout << "\t\t\t____________________________________________________________________________________________\n\n\n";
+        cout << "\t\t\t_______________________________     Manage user accounts     _______________________________\n\n\n";
+        cout << "\t\t\t[1] Add a new account\n";
+        cout << "\t\t\t[2] Modify an existing account\n";
+        cout << "\t\t\t[3] Delete an account\n\n";
+        cout << "\t\t\t[4] Go back to dashboard\n\n";
+        cout << "\t\t\t____________________________________________________________________________________________\n\n\n";
+        cout << "\t\t\t\t";
+
+        char choice;
+        choice = _getch();
+        cout << endl;
+
+        switch (choice)
+        {
+        case '1':   // Add a new account
+        {
+            signup();
+            break;
+        }
+        case '2':   // Modify an existing account
+        {
+            cout << "\t\tEnter user's ID to modify: ";
+            getline(cin, user.ID);
+
+            users_data.open("UserData.txt", ios::in);
+
+            if (users_data.is_open())
+            {
+                // Reading the users data file to check the existence of the user
+                while (getline(users_data, line))    // Skipping the first line because its always white space (empty)
+                {
+                    getline(users_data, line);      // Starts reading from the second line beacuse it contain's the user's id
+                    if (line == user.ID)            // User enterd exists
+                    {
+                        exist = true;
+                        break;
+                    }
+                    while (getline(users_data, line))   // Skips reading the rest of the user's data cuz it's useless now
+                    {
+                        if (line == "______________________________")
+                            break;
+                    }
+                }
+
+                if (exist)
+                {
+                    // Reading the new data
+                    cout << "\t\tEnter new user name: ";
+                    getline(cin, user.Name);
+
+                    cout << "\t\tEnter new age: ";
+                    cin >> user.Age;
+                    cin.ignore();
+
+                    cout << "\t\tEnter new phone number: ";
+                    getline(cin, user.Phone);
+
+                    cout << "\t\tEnter new Email: ";
+                    getline(cin, user.Email);
+
+                    cout << "\t\tEnter new address: ";
+                    getline(cin, user.Address);
+
+                    cout << "\t\tEnter new gender: ";
+                    getline(cin, user.gender);
+
+                    // Resetting the stream pointer to read from the beggining of the file
+                    users_data.clear();
+                    users_data.seekg(0, ios::beg);
+
+                    temp.open("newUserData.txt");
+
+                    // Rewriting old data
+                    while (getline(users_data, line))
+                    {
+                        if (line == user.ID)
+                        {
+                            while (getline(users_data, line))
+                            {
+                                if (line == "______________________________") break;
+                            }
+
+                            temp << user.ID;
+                            temp << endl << user.Name;
+                            temp << endl << user.Age;
+                            temp << endl << user.Phone;
+                            temp << endl << user.Email;
+                            temp << endl << user.Address;
+                            temp << endl << user.gender;
+                            temp << endl << "______________________________\n";
+                        }
+                        else
+                        {
+                            temp << line << endl;
+                        }
+                    }
+                    users_data.close();
+                    temp.close();
+
+                    remove("UserData.txt");
+                    rename("NewUserData.txt", "UserData.txt");
+                    cout << "\t\tUser's data modified successfully!\n\n";
+                }
+                else
+                {
+                    cout << "\t\tUser does not exist!\n\n\n";
+                    users_data.close();
+                    temp.close();
+                }
+            }
+            else
+            {
+                cout << "\t\tError reading users' data!\n";
+            }
+            cout << "\t\tPress any key to continue\n";
+            cout << "\t\t\t";
+            _getch();
+            break;
+        }
+        case '3':   // Delete an account
+        {
+            cout << "\t\tEnter user's ID to delete: ";
+            getline(cin, user.ID);
+
+            users_data.open("UserData.txt", ios::in);
+
+            if (users_data.is_open())
+            {
+                // Reading the users data file to check the existence of the user
+                while (getline(users_data, line))    // Skipping the first line because its always white space (empty)
+                {
+                    getline(users_data, line);      // Starts reading from the second line beacuse it contain's the user's id
+                    if (line == user.ID)            // User enterd exists
+                    {
+                        exist = true;
+                        break;
+                    }
+                    while (getline(users_data, line))   // Skips reading the rest of the user's data cuz it's useless now
+                    {
+                        if (line == "______________________________")
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                if (exist)
+                {
+                    // Resetting the stream pointer to read from the beggining of the file
+                    users_data.clear();
+                    users_data.seekg(0, ios::beg);
+
+                    temp.open("newUserData.txt");
+
+                    // Rewriting old data
+                    while (getline(users_data, line))
+                    {
+                        if (line == user.ID)
+                        {
+                            while (getline(users_data, line))
+                            {
+                                if (line == "______________________________") 
+                                {
+                                    getline(users_data,line);
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            temp << line << endl;
+                        }
+                    }
+                    users_data.close();
+                    temp.close();
+
+                    remove("UserData.txt");
+                    rename("NewUserData.txt", "UserData.txt");
+                    cout << "\t\tUser's data deleted successfully!\n\n";
+                }
+                else
+                {
+                    cout << "\t\tUser does not exist!\n\n\n";
+                    users_data.close();
+                    temp.close();
+                }
+            }
+            else
+            {
+                cout << "\t\tError reading users' data!\n";
+            }
+            cout << "\t\tPress any key to continue\n";
+            cout << "\t\t\t";
+            _getch();
+            break;
+        }
+        case '4':   // Back to dashboard
+        {
+            return;
+        }
+        }
+    }
 }
 
 void search_trains()
@@ -269,7 +657,7 @@ void cancel_booking()
     // if there is no tickets , then i will not be able to change anything
     if (reserved.is_open())
     {
-        while(getline(reserved, line))
+        while (getline(reserved, line))
         {
             reserved >> username >> id >> seats >> price;
 
@@ -302,7 +690,7 @@ void cancel_booking()
     // Reading data from file to delete the ticket
     if (temp.is_open() && reserved.is_open())
     {
-        while(!reserved.eof())
+        while (!reserved.eof())
         {
             if (first_line)
             {
@@ -341,7 +729,7 @@ void view_previous_trips()
 
     if (trips.is_open())
     {
-        while(getline(trips, line))
+        while (getline(trips, line))
         {
             cout << endl << line;
         }
@@ -349,40 +737,10 @@ void view_previous_trips()
     }
 
     cout << "\n\n\nPress any key to continue!\n";
-    getch();
+    _getch();
 }
 
-void reserve_seat(int row, int col) {
-    if (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
-        if (tickets[row][col] == 0) {
-            tickets[row][col] = 1;
-            cout << "Ticket reserved successfully!" << endl;
-        }
-        else{
-            cout << "This seat is already reserved. Please choose another one." << endl;
-        }
-    }
-    else{
-        cout << "Invalid row or column number. Please try again." << endl;
-    }
-}
-
-void cancel_seat(int row, int col) {
-    if (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
-        if (tickets[row][col] == 1) {
-            tickets[row][col] = 0;
-            cout << "Ticket cancellation successful!" << endl;
-        }
-        else{
-            cout << "This seat is not reserved. Cannot cancel reservation." << endl;
-        }
-    }
-    else{
-        cout << "Invalid row or column number. Please try again." << endl;
-    }
-}
-
-void read_payment_methods()
+void read_payment_methods()     // Updates payment methods availability whenever the admin changes
 {
     string method;
     bool availability;
@@ -430,7 +788,7 @@ int make_payment(int price, int seats)
 
         bool valid;
         char button;
-        button = getch();
+        button = _getch();
 
         if (button == '1')
         {   // Cash
@@ -440,7 +798,7 @@ int make_payment(int price, int seats)
                 cout << "You will pay: " << ticket_price << " at the Railway Station\n\n\n";
                 cout << "\t\tPress any key to continue!\n";
                 cout << "\t\t";
-                getch();
+                _getch();
                 return ticket_price;
             }
             else
@@ -448,7 +806,7 @@ int make_payment(int price, int seats)
                 cout << "\t\tCash payment method isn't available right now\n";
                 cout << "\t\tPress any key to continue!\n";
                 cout << "\t\t";
-                getch();
+                _getch();
             }
         }
         else if (button == '2')
@@ -462,7 +820,7 @@ int make_payment(int price, int seats)
                     cout << "\t\tPayment transaction done successfully!\n\n\n";
                     cout << "\t\tPress any key to continue!\n";
                     cout << "\t\t";
-                    getch();
+                    _getch();
                     return ticket_price;
                 }
                 else
@@ -470,7 +828,7 @@ int make_payment(int price, int seats)
                     cout << "\t\tPayment card invalid\n";
                     cout << "\t\tPress any key to continue!\n";
                     cout << "\t\t";
-                    getch();
+                    _getch();
                 }
             }
             else
@@ -478,7 +836,7 @@ int make_payment(int price, int seats)
                 cout << "\t\tBank card payment method isn't available right now\n";
                 cout << "\t\tPress any key to continue!\n";
                 cout << "\t\t";
-                getch();
+                _getch();
             }
         }
         else if (button == '3')
@@ -506,10 +864,10 @@ int make_payment(int price, int seats)
                 // Putting all the sections together to form the whole code
                 code = sec1 + sec2 + sec3;
 
-                cout << "\t\t\tYour refrence code is [" << code <<"] you must pay it within 72 hours!\n\n\n";
+                cout << "\t\t\tYour refrence code is [" << code << "] you must pay it within 72 hours!\n\n\n";
                 cout << "\t\tPress any key to continue!\n";
                 cout << "\t\t\t";
-                getch();
+                _getch();
                 return ticket_price;
             }
             else
@@ -517,7 +875,7 @@ int make_payment(int price, int seats)
                 cout << "\t\tFawry payment method isn't available right now\n";
                 cout << "\t\tPress any key to continue!\n";
                 cout << "\t\t\t";
-                getch();
+                _getch();
             }
         }
         else
@@ -547,7 +905,7 @@ void manage_payment()
         cout << "\t\t\t\t";
 
         char button;
-        button = getch();
+        button = _getch();
         if (button == '1')
         {   // View payment details
             // Reading payment methods data
@@ -567,7 +925,7 @@ void manage_payment()
                 cout << endl << endl;
                 cout << "\t\tPress any key to continue!\n";
                 cout << "\t\t\t";
-                getch();
+                _getch();
                 continue;
             }
             else
@@ -575,7 +933,7 @@ void manage_payment()
                 cout << "\t\t\tError opening file\n\n\n";
                 cout << "\t\tPress any key to continue!\n";
                 cout << "\t\t\t";
-                getch();
+                _getch();
                 continue;
             }
         }
@@ -592,15 +950,15 @@ void manage_payment()
                 cout << "\t\t\tPress any other key to go back\n\n\n";
                 cout << "\t\t\t\t";
 
-                button = getch();
+                button = _getch();
                 if (button == '1')
                 {
                     new_method = "Bank_card";
 
                     cout << "\t\t\tAdd Bank card as a payment method? (y/n):\n";
                     cout << "\t\t\t\t";
-                    button = getch();
-                    
+                    button = _getch();
+
 
                 }
                 else if (button == '2')
@@ -609,7 +967,7 @@ void manage_payment()
 
                     cout << "\t\t\tAdd Cash as a payment method? (y/n):\n";
                     cout << "\t\t\t\t";
-                    button = getch();
+                    button = _getch();
                 }
                 else if (button == '3')
                 {
@@ -617,7 +975,7 @@ void manage_payment()
 
                     cout << "\t\t\tAdd Fawry as a payment method? (y/n):\n";
                     cout << "\t\t\t\t";
-                    button = getch();
+                    button = _getch();
                 }
                 else
                 {
@@ -627,7 +985,7 @@ void manage_payment()
                 payments.open("paymentMethods.txt", ios::in);
                 temp.open("newPaymentMethods.txt");
                 bool first_line = true;
-                
+
                 if (payments.is_open() && temp.is_open())
                 {
                     while (!payments.eof())
@@ -665,9 +1023,9 @@ void manage_payment()
                 else
                 {
                     cout << "\t\t\tError reading data from files!\n\n\n";
-                    cout <<"\t\tPress any key to continue\n";
+                    cout << "\t\tPress any key to continue\n";
                     cout << "\t\t";
-                    getch();
+                    _getch();
                 }
             }
         }
@@ -679,26 +1037,52 @@ void manage_payment()
     }
 }
 
+void generateUserReport(string userID) {
+    // Find the user
+    for (int i = 0; i < user_reports.size(); i++) {
+        if (user_reports[i].ID == userID) {
+            cout << "User Report for " << user_reports[i].Name << ":\n";
+            cout << "Email: " << user_reports[i].Email << "\n";
+            cout << "Address: " << user_reports[i].Address << "\n";
+            cout << "Phone: " << user_reports[i].Phone << "\n";
+            cout << "Gender: " << user_reports[i].gender << "\n";
+            cout << "Age: " << user_reports[i].Age << "\n";
+            cout << "Role: " << user_reports[i].Role << "\n";
+
+            // Print all tickets for this user
+            for (int j = 0; j < user_reports[i].booked_tickets.size(); j++) {
+                cout << "Ticket ID: " << user_reports[i].booked_tickets[j].ID << "\n";
+                cout << "Start Location: " << user_reports[i].booked_tickets[j].Start_location << "\n";
+                cout << "Destination Location: " << user_reports[i].booked_tickets[j].Destination_location << "\n";
+                cout << "Price: " << user_reports[i].booked_tickets[j].Price << "\n";
+            }
+            break;
+        }
+    }
+}
+
 void book_tickets()
 {
     system("CLS");
-	Ticket ticket;
-	int seats;
+
+    // Reading variables
+    Ticket ticket;
+    int seats;
     string start, dest;
     int id, price;
     ifstream prices;
     prices.open("ticketsPrices.txt");
 
-	cout << endl;
+    cout << endl;
     cout << "---------------------Locations---------------------" << endl;
     cout << left;
     cout << setw(5) << "ID";
     cout << setw(20) << "Start";
     cout << setw(20) << "Destination";
     cout << setw(5) << "Price" << endl << endl;
-    
 
-    while(!prices.eof())
+
+    while (!prices.eof())
     {
         prices >> id >> start >> dest >> price;
 
@@ -709,22 +1093,24 @@ void book_tickets()
         cout << setw(20) << dest;
         cout << setw(5) << price << endl;
     }
-	cout << "---------------------------------------------------" << endl;
+    cout << "---------------------------------------------------" << endl;
     prices.close();
 
-    cout << "Enter ticket ID you want to book:\n" << "\t-->";
+    cout << "\t\tEnter ticket ID you want to book:\n";
+    cout << "\t\t\t-->";
     cin >> ticket.ID;
     cin.ignore();
 
-	cout << "Enter number of seats:\n" << "\t-->";
-	cin >> seats;
-    cout << "---------------------------------------------\n";
+    cout << "\t\tEnter number of seats:\n";
+    cout << "\t\t\t-->";
+    cin >> seats;
+    cout << "---------------------------------------------------\n";
 
     // Reading ticket's price from prices file
     prices.open("ticketsPrices.txt");
     if (prices.good())
     {
-        while(!prices.eof())
+        while (!prices.eof())
         {
             prices >> id >> start >> dest >> price;
 
@@ -741,13 +1127,13 @@ void book_tickets()
         cout << "Error reading ticket's data from file!\n\n";
     }
 
-	ticket.Price = make_payment(ticket.Price, seats);     // Storing ticket price after checking visa validity
+    ticket.Price = make_payment(ticket.Price, seats);     // Storing ticket price after checking visa validity
     if (ticket.Price == -1)
     {
         cout << "\t\t\tTicket booking cancelled\n\n\n";
         cout << "\t\tPress any key to continue!\n";
         cout << "\t\t";
-        getch();
+        _getch();
         return;
     }
 
@@ -755,16 +1141,18 @@ void book_tickets()
     ofstream reserve;
     reserve.open("reservedTickets.txt", ios::app);
     if (reserve.good())
-    {       // setw() used for allignment
+    {
+        // setw() used for allignment
         reserve << endl;
         reserve << left;
-        reserve << setw(16) <<user.Name;
+        reserve << setw(16) << user.ID;
         reserve << setw(16) << ticket.ID;
         reserve << setw(12) << seats;
         reserve << setw(5) << ticket.Price;
     }
     reserve.close();
-    cout << endl << endl << "Ticket added successfully!" << endl << endl << endl ;
+    cout << endl << endl << "Ticket added successfully!" << endl << endl << endl;
+    generateUserReport(user.ID);
     Sleep(2000);
 }
 
@@ -783,47 +1171,48 @@ bool isloggedin()
     cin >> username;
     cout << "\t\t\tPlease Enter The PASSWORD : ";
     cin >> password;
+    cin.ignore();
 
     fstream read; // fstream reads a file
-    read.open("Data.txt", ios::in);
-    
+    read.open("LoginData.txt", ios::in);
+
     if (!read.is_open()) {
-      cout << "Error opening the file";
-      read.close();
-      exit(1);
+        cout << "Error opening the file";
+        read.close();
+        exit(1);
     }
     // Check every username and Password in the file 
-    while (!read.eof()){
+    while (!read.eof()) {
         getline(read, un); //reads the username
         getline(read, role); // reads the user's role
         getline(read, pw); //reads the password 
         if (un == username && pw == password) //if both un & username and pw & password are the same -> true
         {
             read.close();
-            user.Name = username;
+            user.ID = username;
             user.Role = role;
             return true;
         }
     }
     // if the Function didn't return this means that the given username is not in file or the password is wrong
-    return false ;
+    return false;
 }
 
 void MangeTicket() {
     // Reading variables for prices file "ticketsPrices.txt"
     int id, price;
     string start, dest, line;
-    while (1){
+    while (1) {
         // Menu
-        cout << endl << "Enter 1 to add a new ticket" << endl ;
-        cout << "Enter 2 to change a ticket" << endl ;
-        cout << "Enter 3 to delete a ticket" << endl ;
-        cout << "Enter any other number to exit" << endl << endl << endl ;
-        char choice ;
-        choice = getch();
+        cout << endl << "Enter 1 to add a new ticket" << endl;
+        cout << "Enter 2 to change a ticket" << endl;
+        cout << "Enter 3 to delete a ticket" << endl;
+        cout << "Enter any other number to exit" << endl << endl << endl;
+        char choice;
+        choice = _getch();
 
-        if (choice == '1'){
-            Ticket NewTicket ;
+        if (choice == '1') {
+            Ticket NewTicket;
             bool exist = false;
             bool first_line = false;
             id = -1;
@@ -831,10 +1220,10 @@ void MangeTicket() {
 
             cout << "Enter ticket ID:\n" << "\t-->";
             cin >> NewTicket.ID;
-            while(!prices.eof())
+            while (!prices.eof())
             {       // Checking if the ticket ID already exists in file or not
                 prices >> id >> start >> dest >> price;
-                
+
                 if (id == -1) first_line = true;
                 if (NewTicket.ID == id)
                 {
@@ -852,16 +1241,16 @@ void MangeTicket() {
             prices.close();
 
             // Get start location
-            cout << "Enter the start location of the ticket : " ;
-            getline(cin , NewTicket.Start_location) ;
+            cout << "Enter the start location of the ticket : ";
+            getline(cin, NewTicket.Start_location);
 
             // Get destination location
-            cout << "Enter the destination location of the ticket : " ;
-            getline(cin , NewTicket.Destination_location) ;
+            cout << "Enter the destination location of the ticket : ";
+            getline(cin, NewTicket.Destination_location);
 
             // Get Price
-            cout << "Enter the price of the ticket : " ;
-            cin >> NewTicket.Price ;
+            cout << "Enter the price of the ticket : ";
+            cin >> NewTicket.Price;
 
             // Appending the new ticket data into the "ticketsPrices.txt" file
             prices.open("ticketsPrices.txt", ios::app);
@@ -873,10 +1262,10 @@ void MangeTicket() {
             }
 
             prices.close();
-            cout << endl << endl << "Ticket added successfully!" << endl << endl << endl ;
+            cout << endl << endl << "Ticket added successfully!" << endl << endl << endl;
         }
 
-        else if (choice == '2'){      // Change ticekt details
+        else if (choice == '2') {      // Change ticekt details
             bool empty = false;
             id = -1;        // Initializing the id to check if the text file is empty or not
 
@@ -885,7 +1274,7 @@ void MangeTicket() {
 
             if (prices.is_open())
             {
-                while(!prices.eof())
+                while (!prices.eof())
                 {
                     prices >> id >> start >> dest >> price;
 
@@ -916,16 +1305,16 @@ void MangeTicket() {
 
             // Get the new start location
             cout << "Enter the new start location of the ticket :\n" << "\t-->";
-            string new_start_location ; 
-            getline(cin , new_start_location) ;
+            string new_start_location;
+            getline(cin, new_start_location);
 
             // Get the new destination location
-            cout << "Enter the new destination location of the ticket :\n" << "\t-->" ;
-            string new_destination_location ; 
-            getline(cin , new_destination_location) ;
-            
+            cout << "Enter the new destination location of the ticket :\n" << "\t-->";
+            string new_destination_location;
+            getline(cin, new_destination_location);
+
             // Get the new price
-            cout << "Enter the new price of the ticket :\n" << "\t-->" ;
+            cout << "Enter the new price of the ticket :\n" << "\t-->";
             int new_price;
             cin >> new_price;
             cin.ignore();
@@ -938,7 +1327,7 @@ void MangeTicket() {
 
             if (temp.is_open() && prices.is_open())
             {
-                while(!prices.eof())
+                while (!prices.eof())
                 {
                     prices >> id >> start >> dest >> price;
 
@@ -960,7 +1349,7 @@ void MangeTicket() {
 
                 remove("ticketsPrices.txt");
                 rename("newPrices.txt", "ticketsPrices.txt");
-                cout << endl << endl << "Ticket changed successfully!" << endl << endl << endl ;
+                cout << endl << endl << "Ticket changed successfully!" << endl << endl << endl;
             }
 
             else
@@ -970,7 +1359,7 @@ void MangeTicket() {
             }
 
         }
-        else if (choice == '3'){
+        else if (choice == '3') {
             bool empty = false;
             id = -1;        // Initializing the id to check if the text file is empty or not
 
@@ -979,7 +1368,7 @@ void MangeTicket() {
 
             if (prices.is_open())
             {
-                while(!prices.eof())
+                while (!prices.eof())
                 {
                     prices >> id >> start >> dest >> price;
 
@@ -1016,7 +1405,7 @@ void MangeTicket() {
             // Reading data from file to delete the ticket
             if (temp.is_open() && prices.is_open())
             {
-                while(!prices.eof())
+                while (!prices.eof())
                 {
                     prices >> id >> start >> dest >> price;
 
@@ -1038,22 +1427,23 @@ void MangeTicket() {
 
                 remove("ticketsPrices.txt");
                 rename("newPrices.txt", "ticketsPrices.txt");
-        }   }
+            }
+        }
         else {
             // if the choice any other value -> end the program
-            break ;
+            break;
         }
     }
 }
 
 
-
 //---------------------- Main Function ----------------------//
 int main()
 {
-    while(true)
+    while (true)
     {
         system("CLS");
+
         cout << "\t\t\t _____________________________________________________________________________________________\n\n\n";
         cout << "\t\t\t                                 Welcome to Log in page                                        \n\n\n";
         cout << "\t\t\t ___________________________              MENU              ____________________________________\n\n\n";
@@ -1065,24 +1455,25 @@ int main()
         cout << "\t\t\tIf you already have an account, press 1\n";
         cout << "\t\t\tTo exit the program, press any key\n\n";
         cout << "\t\t\t\t";
-        
-        char button;
-        button = getch();
 
-        if (button == '1'){
-            int check = isloggedin() ;
+        char button;
+        button = _getch();
+
+        if (button == '1') {
+            int check = isloggedin();
             int counter = 0;
 
             // Checking user's login credentials, the program resets after 4 wrong attempts
-            while(!check && counter < 4){
-                cout << endl << "Wrong password or username." << endl ; 
+            while (!check && counter < 4) {
+                cout << endl << "Wrong password or username." << endl;
                 cout << "Please enter a correct username and password." << endl << endl;
-                check = isloggedin() ;
+                check = isloggedin();
             }
             if (check)
             {
 
-                cout << endl << "\t\t\tLogged in successfully :D" << endl << endl ;
+                cout << endl << "\t\t\tLogged in successfully :D" << endl << endl;
+                cout << "\t\t\t";
                 Sleep(1000);
             }
             else
@@ -1090,7 +1481,7 @@ int main()
                 cout << "\t\t\tError entering credentials wrong too many times!" << "\n\n";
                 cout << "\t\tPress any key to continue!\n";
                 cout << "\t\t\t";
-                getch();
+                _getch();
             }
         }
         else if (button == '2')
@@ -1105,32 +1496,32 @@ int main()
         if (user.Role == "admin")
         {
             // Admin functions
-            while (1){
+            while (1) {
                 system("CLS");
-                cout << "______________________________________    Dashboard    ______________________________________\n\n\n";
-                cout << "\t\t1>> Manage train schedule" << endl ;
-                cout << "\t\t2>> Manage user accounts" << endl ;
-                cout << "\t\t3>> Manage ticket prices" << endl;
-                cout << "\t\t4>> Manage Payment" << endl;
-                cout << "\t\t5>> Search trains" << endl;
-                cout << "\t\t6>> Book tickets" << endl;
-                cout << "\t\t7>> Cancel booking" << endl;
-                cout << "\t\t8>> View previous trips" << endl << endl;
-                cout << "_____________________________________________________________________________________________\n\n\n";
-                cout << "\t\tPress a number for an action" << endl;
-                cout << "\t\tor press any key to exit the program" << endl << endl;
-                cout << "\t\t\t";
+                cout << "\t\t\t______________________________________    Dashboard    ______________________________________\n\n\n";
+                cout << "\t\t\t1>> Manage train schedule" << endl;
+                cout << "\t\t\t2>> Manage user accounts" << endl;
+                cout << "\t\t\t3>> Manage ticket prices" << endl;
+                cout << "\t\t\t4>> Manage Payment" << endl;
+                cout << "\t\t\t5>> Search trains" << endl;
+                cout << "\t\t\t6>> Book tickets" << endl;
+                cout << "\t\t\t7>> Cancel booking" << endl;
+                cout << "\t\t\t8>> View previous trips" << endl << endl;
+                cout << "\t\t\t_____________________________________________________________________________________________\n\n\n";
+                cout << "\t\t\tPress a number for an action" << endl;
+                cout << "\t\t\tor press any key to exit the program" << endl << endl;
+                cout << "\t\t\t\t";
 
 
-                char choice ;
-                choice = getch();
-                
+                char choice;
+                choice = _getch();
+
                 if (choice == '1')
                 {
                     manage_train_schedule();
                 }
                 else if (choice == '2') {
-                    manage_user_accounts() ;
+                    manage_user_accounts();
                 }
                 else if (choice == '3')
                 {
@@ -1178,15 +1569,15 @@ int main()
                 cout << "\t\tPress a number for an action" << endl;
                 cout << "\t\t\t";
 
-                char choice ;
-                choice = getch();
-                
+                char choice;
+                choice = _getch();
+
                 if (choice == '1')
                 {
                     search_trains();
                 }
                 else if (choice == '2') {
-                    book_tickets() ;
+                    book_tickets();
                 }
                 else if (choice == '3')
                 {
