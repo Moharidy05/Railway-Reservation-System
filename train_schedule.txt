@@ -1,0 +1,16 @@
+
+train ID: 22
+train number: 888
+train name: Cairo-Ramsees
+train availability: 1
+______________________________
+train ID: 30
+train number: 1002
+train name: Alex-Cairo
+train availability: 0
+______________________________
+train ID: 29
+train number: 205
+train name: Assiut-Banha
+train availability: 0
+______________________________
