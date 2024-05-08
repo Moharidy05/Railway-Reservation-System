@@ -25,7 +25,6 @@ struct Ticket {
     float Price;
     string name;
 };
-vector<Ticket> Tickets;
 
 struct User {
     string ID;
