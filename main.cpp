@@ -674,9 +674,9 @@ bool isloggedin()
 
     cout << "\t\t\tPlease Enter The User ID : ";
     cin >> userID;
-    cin.ignore();
 
     cout << "\t\t\tPlease Enter The PASSWORD : ";
+    cin.ignore();
     getline(cin, password);
 
     ifstream read; // fstream reads a file
@@ -684,7 +684,7 @@ bool isloggedin()
 
     if (!read.is_open()) {
         cout << "Error opening the file";
-        exit(1);
+        exit(1); // closes the program
     }
     // Check every username and Password in the file 
     while (!read.eof()) {
@@ -952,7 +952,7 @@ void manage_ticket_prices() {
 
         if (choice == '1') {
             Ticket NewTicket;
-            bool exist = false;
+            bool exist = false; // Checks the ticket exist or not
             id;
             prices.open("ticketsPrices.txt", ios::in);      // Reading from file to check if the new ticket ID already exists
 
@@ -993,18 +993,19 @@ void manage_ticket_prices() {
             prices.open("ticketsPrices.txt", ios::app);
 
             prices << NewTicket.ID << "\t\t" << NewTicket.Start_location << "\t\t";;
-            prices << NewTicket.Destination_location << "\t\t" << NewTicket.Price;
+            prices << NewTicket.Destination_location << "\t\t" << NewTicket.Price << endl;
 
             prices.close();
             cout << endl << endl << "Ticket added successfully!" << endl << endl << endl;
         }
 
         else if (choice == '2') {      // Change ticekt details
-            bool empty = false;
+            bool empty = false;     // Checks the file is empty or not
             id = -1;        // Initializing the id to check if the text file is empty or not
+            bool exist = false;  // Checks if the entered ticket exists or not
 
             // if there is no tickets , then i will not be able to change anything
-            prices.open("ticketsPrices.txt", ios::in);
+            prices.open("ticketsPrices.txt", ios::in); 
 
             if (prices.is_open())
             {
@@ -1015,7 +1016,7 @@ void manage_ticket_prices() {
                     if (id == -1)
                     {
                         cout << "No tickets to change!\n\n\n";
-                        empty = true;
+                        empty = true; // The file is empty
                         break;
                     }
                 }
@@ -1025,6 +1026,7 @@ void manage_ticket_prices() {
                     continue;
                 }
                 prices.close();
+
             }
             else
             {
@@ -1036,6 +1038,24 @@ void manage_ticket_prices() {
             int ticket_id;
             cin >> ticket_id;
             cin.ignore();
+
+            while (!prices.eof())
+            {       // Checking if the ticket ID already exists in file or not
+                prices >> id >> start >> dest >> price;
+
+                if (ticket_id == id)
+                {
+                    exist = true; // Ticket exists
+                    break;
+                }
+            }
+            if (!exist)
+            {
+                cout << "\t\tTicket does not exist\n\n\n";
+                prices.close();
+                continue;
+            }
+            prices.close(); 
 
             // Get the new start location
             cout << "Enter the new start location of the ticket :\n" << "\t-->";
@@ -1054,11 +1074,11 @@ void manage_ticket_prices() {
             cin.ignore();
 
             // Replacing the old ticket with the new ticket
-            ofstream temp;
+            ofstream temp; 
             temp.open("newPrices.txt");     // Temp file for adding new data
             prices.open("ticketsPrices.txt", ios::in);      // Original file to read from
 
-            if (temp.is_open() && prices.is_open())
+            if (prices.is_open())
             {
                 while (!prices.eof())
                 {
@@ -1067,11 +1087,11 @@ void manage_ticket_prices() {
                     if (ticket_id == id)
                     {
                         temp << ticket_id << "\t\t" << new_start_location << "\t\t" << new_destination_location << "\t\t";
-                        temp << new_price;
+                        temp << new_price << endl;
                     }
                     else
                     {
-                        temp << id << "\t\t" << start << "\t\t" << dest << "\t\t" << price;
+                        temp << id << "\t\t" << start << "\t\t" << dest << "\t\t" << price << endl;
                     }
                 }
 
@@ -1091,8 +1111,9 @@ void manage_ticket_prices() {
 
         }
         else if (choice == '3') {
-            bool empty = false;
+            bool empty = false; // chekcs if the file is empty
             id = -1;        // Initializing the id to check if the text file is empty or not
+            bool exist = false;     // checks if the ticket exists
 
             // if there is no tickets , then i will not be able to change anything
             prices.open("ticketsPrices.txt", ios::in);
@@ -1106,7 +1127,7 @@ void manage_ticket_prices() {
                     if (id == -1)
                     {
                         cout << "No tickets to delete!\n\n\n";
-                        empty = true;
+                        empty = true; // No tickets added
                         break;
                     }
                 }
@@ -1128,29 +1149,39 @@ void manage_ticket_prices() {
             cin >> ticket_id;
             cin.ignore();
 
-            bool first_line = true;     // bool to check first line in the prices file "ticketsPrices.txt"
+            while (!prices.eof())
+            {       // Checking if the ticket ID already exists in file or not
+                prices >> id >> start >> dest >> price;
+
+                if (ticket_id == id)
+                {
+                    exist = true; // checks the tikcet exist or not
+                    break;
+                }
+            }
+            if (!exist)
+            {
+                cout << "\t\Ticket does not exist!\n\n\n";
+                prices.close();
+                continue;
+            }
+            prices.close();
+
             ofstream temp;
             temp.open("newPrices.txt");     // Temp file for adding new data
             prices.open("ticketsPrices.txt", ios::in);      // Original file to read from
 
             // Reading data from file to delete the ticket
-            if (temp.is_open() && prices.is_open())
+            if (prices.is_open())
             {
                 while (!prices.eof())
                 {
                     prices >> id >> start >> dest >> price;
 
-                    if (!first_line) temp << endl;
                     if (ticket_id != id)
                     {
-                        temp << id << "\t\t" << start << "\t\t" << dest << "\t\t" << price;
+                        temp << id << "\t\t" << start << "\t\t" << dest << "\t\t" << price << endl;
                     }
-                    else
-                    {
-                        first_line = true;
-                        continue;
-                    }
-                    first_line = false;
                 }
 
                 temp.close();
@@ -1493,7 +1524,7 @@ void search_trains() {
         ifstream file;
         string line;
 
-        int pointer_location;   // Getting stream pointer location
+        int pointer_location = 0;   // Getting stream pointer location
 
         cout << "\t\tSearch train by:\n";
         cout << "\t\t[1] train number\n";
@@ -1753,7 +1784,7 @@ void manage_train_schedule() {
                 {
                     if (line == "train ID: " + train.ID)
                     {   // Skipping the existing train's details to replace them with the modified ones
-                        for (int i = 0; i < 4; i++)
+                        for (int i = 0; i < 3; i++)
                         {
                             getline(display, line);
                         }
@@ -1964,7 +1995,7 @@ void generate_user_reports(User& user) {
     ifstream file("reservedTickets.txt");
 
     if (!file.is_open()) {
-        cerr << "Unable to open file reservedTickets.txt";
+        cout << "Unable to open file reservedTickets.txt";
         exit(1);
     }
 
