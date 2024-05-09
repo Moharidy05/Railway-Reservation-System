@@ -74,7 +74,7 @@ void cancel_booking();
 bool isloggedin();
 void sign_up();
 void forgot();
-void generate_user_reports(User &user);
+void generate_user_reports(User& user);
 void update_user_data();
 void view_previous_trips();
 int get_digits(long long n);
@@ -322,7 +322,7 @@ int make_payment(int price, int seats)
         }
     }
 }
-    
+
 void manage_payment()
 {
     // Reading variables
@@ -1658,9 +1658,24 @@ void manage_train_schedule() {
 
             if (display.is_open())
             {
-                while (getline(display, line)) {
-                    cout << "\t\t" << line << endl;
+                for (int i = 0; i < 2; i++)
+                {
+                    // Checks first 2 lines in the file to see if it's emtpy
+                    getline(display, line);
                 }
+                if (line == "")
+                {
+                    cout << "\t\tNot trains added yet!\n\n\n";
+                    cout << "\t\tPress any key to continue!\n";
+                    cout << "\t\t";
+                    _getch();
+                    continue;
+                }
+
+                // Resetting the stream pointer to the beggining of the file
+                display.seekg(0, ios::beg);
+                while (getline(display, line))
+                    cout << line << endl;
             }
             else
             {
@@ -1915,10 +1930,10 @@ void update_user_data()
         {
             getline(user_data, user.Name);
             user_data >> user.Age;
-            getline(user_data,user.Phone);
-            getline(user_data,user.Email);
-            getline(user_data,user.Address);
-            getline(user_data,user.gender);
+            getline(user_data, user.Phone);
+            getline(user_data, user.Email);
+            getline(user_data, user.Address);
+            getline(user_data, user.gender);
             getline(user_data, line);
             if (id == user.ID)
             {
@@ -1936,16 +1951,16 @@ void update_user_data()
     user_data.close();
 }
 
-void generate_user_reports(User &user) {
-    
+void generate_user_reports(User& user) {
+
     system("cls");
 
-    cout<<"-------------------------------------User Info----------------------------------------"<<endl<<endl;
+    cout << "-------------------------------------User Info----------------------------------------" << endl << endl;
 
-    cout<<"Name : "<<user.Name<<"\t\t"<<"ID : "<<user.ID<<"\t\t"<<"Phone : "<<user.Phone<<"\t\t"<<"Age : "<<user.Age
-    <<"\t\t"<<"Email : "<<user.Email<<"\t\t"<<"Address : "<<user.Address<<"\t\t"<<"Gender : "<<user.gender<<endl<<endl;
-    
-    
+    cout << "Name : " << user.Name << "\t\t" << "ID : " << user.ID << "\t\t" << "Phone : " << user.Phone << "\t\t" << "Age : " << user.Age
+        << "\t\t" << "Email : " << user.Email << "\t\t" << "Address : " << user.Address << "\t\t" << "Gender : " << user.gender << endl << endl;
+
+
     ifstream file("reservedTickets.txt");
 
     if (!file.is_open()) {
@@ -1959,66 +1974,66 @@ void generate_user_reports(User &user) {
     int seats[MAX_USERS];
     int numUsers = 0;
 
-    while (file >> userIds[numUsers] >> tickets[numUsers].ID >> tickets[numUsers].Start_location >> tickets[numUsers].Destination_location >> seats[numUsers]>>tickets[numUsers].Price) {
+    while (file >> userIds[numUsers] >> tickets[numUsers].ID >> tickets[numUsers].Start_location >> tickets[numUsers].Destination_location >> seats[numUsers] >> tickets[numUsers].Price) {
         numUsers++;
     }
 
     file.close();
 
     string id = user.ID;
-   
-    
-   cout<<"--------------------------------Ticket info--------------------------------"<<endl<<endl;
-      
+
+
+    cout << "--------------------------------Ticket info--------------------------------" << endl << endl;
+
     bool found = false;
     for (int i = 0; i < numUsers; i++) {
         if (userIds[i] == id) {
 
-          
-            cout << "Ticket ID: " << tickets[i].ID 
-           <<"\t\t" <<"Start Location: " << tickets[i].Start_location 
-           << "\t\t" << "Destination Location: " << tickets[i].Destination_location 
-           <<"\t\t"<<"number of seats : "<<seats[i]<<"\t\t"<< "Price: " << tickets[i].Price << endl<<endl;
+
+            cout << "Ticket ID: " << tickets[i].ID
+                << "\t\t" << "Start Location: " << tickets[i].Start_location
+                << "\t\t" << "Destination Location: " << tickets[i].Destination_location
+                << "\t\t" << "number of seats : " << seats[i] << "\t\t" << "Price: " << tickets[i].Price << endl << endl;
             found = true;
-            
+
         }
     }
 
     if (!found) {
-        cout << "No tickets found for user ID: " << id << endl<<endl;
+        cout << "No tickets found for user ID: " << id << endl << endl;
     }
 
     ifstream payment_file("userPayments.txt");
-    if(!payment_file.is_open()){
+    if (!payment_file.is_open()) {
 
-      cout<<"ERROR opening file userPayments.txt"<<endl;
-      exit(1);
+        cout << "ERROR opening file userPayments.txt" << endl;
+        exit(1);
     }
-    const int MAX_users=1000;
+    const int MAX_users = 1000;
     string User_ID[MAX_users];
-    int Usercount=0;
+    int Usercount = 0;
     string payment_method[MAX_users];
     string payment_status[MAX_users];
     string ticket_id;
-    while(payment_file>>User_ID[Usercount]>>ticket_id>>payment_method[Usercount]>>payment_status[Usercount]){
+    while (payment_file >> User_ID[Usercount] >> ticket_id >> payment_method[Usercount] >> payment_status[Usercount]) {
 
-      Usercount++;
+        Usercount++;
     }
-    bool payment_happened=false;
-    cout<<"----------------------Payment Info-------------------------"<<endl<<endl;
-    for(int i=0;i<Usercount;i++){
-    if(User_ID[i]==id){
-
-        
-        cout<<"Payment Method : "<<payment_method[i]<<"\t\t\t"<<"Payment Status : "<<payment_status[i]<<endl;
-        payment_happened=true;
+    bool payment_happened = false;
+    cout << "----------------------Payment Info-------------------------" << endl << endl;
+    for (int i = 0; i < Usercount; i++) {
+        if (User_ID[i] == id) {
 
 
+            cout << "Payment Method : " << payment_method[i] << "\t\t\t" << "Payment Status : " << payment_status[i] << endl;
+            payment_happened = true;
+
+
+        }
     }
-    }
-    if(!payment_happened){
+    if (!payment_happened) {
 
-    cout<<"No Payment has happened"<<endl;
+        cout << "No Payment has happened" << endl;
     }
 
     cout << "\t\tPress any key to continue!\n";
